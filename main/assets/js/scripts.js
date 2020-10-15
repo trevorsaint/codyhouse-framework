@@ -240,31 +240,80 @@ Math.easeInOutQuad = function (t, b, c, d) {
 	return -c/2 * (t*(t-2) - 1) + b;
 };
 
+Math.easeInQuart = function (t, b, c, d) {
+	t /= d;
+	return c*t*t*t*t + b;
+};
+
+Math.easeOutQuart = function (t, b, c, d) { 
+  t /= d;
+	t--;
+	return -c * (t*t*t*t - 1) + b;
+};
+
+Math.easeInOutQuart = function (t, b, c, d) {
+	t /= d/2;
+	if (t < 1) return c/2*t*t*t*t + b;
+	t -= 2;
+	return -c/2 * (t*t*t*t - 2) + b;
+};
+
+Math.easeOutElastic = function (t, b, c, d) {
+  var s=1.70158;var p=d*0.7;var a=c;
+  if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
+  if (a < Math.abs(c)) { a=c; var s=p/4; }
+  else var s = p/(2*Math.PI) * Math.asin (c/a);
+  return a*Math.pow(2,-10*t) * Math.sin( (t*d-s)*(2*Math.PI)/p ) + c + b;
+};
+
 
 /* JS Utility Classes */
+
+// make focus ring visible only for keyboard navigation (i.e., tab key) 
 (function() {
-  // make focus ring visible only for keyboard navigation (i.e., tab key) 
-  var focusTab = document.getElementsByClassName('js-tab-focus');
+  var focusTab = document.getElementsByClassName('js-tab-focus'),
+    shouldInit = false,
+    outlineStyle = false,
+    eventDetected = false;
+
   function detectClick() {
     if(focusTab.length > 0) {
-      resetFocusTabs(false);
+      resetFocusStyle(false);
       window.addEventListener('keydown', detectTab);
     }
     window.removeEventListener('mousedown', detectClick);
+    outlineStyle = false;
+    eventDetected = true;
   };
 
   function detectTab(event) {
     if(event.keyCode !== 9) return;
-    resetFocusTabs(true);
+    resetFocusStyle(true);
     window.removeEventListener('keydown', detectTab);
     window.addEventListener('mousedown', detectClick);
+    outlineStyle = true;
   };
 
-  function resetFocusTabs(bool) {
+  function resetFocusStyle(bool) {
     var outlineStyle = bool ? '' : 'none';
     for(var i = 0; i < focusTab.length; i++) {
       focusTab[i].style.setProperty('outline', outlineStyle);
     }
   };
-  window.addEventListener('mousedown', detectClick);
+
+  function initFocusTabs() {
+    if(shouldInit) {
+      if(eventDetected) resetFocusStyle(outlineStyle);
+      return;
+    }
+    shouldInit = focusTab.length > 0;
+    window.addEventListener('mousedown', detectClick);
+  };
+
+  initFocusTabs();
+  window.addEventListener('initFocusTabs', initFocusTabs);
 }());
+
+function resetFocusTabsStyle() {
+  window.dispatchEvent(new CustomEvent('initFocusTabs'));
+};
